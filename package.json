@@ -1,0 +1,20 @@
+{
+  "name": "piano-controller",
+  "version": "1.0.0",
+  "description": "Piano controller server and web app.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon ./index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "midi-player-js": "^2.0.5",
+    "socket.io": "^2.3.0"
+  }
+}
