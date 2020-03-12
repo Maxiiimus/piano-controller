@@ -15,6 +15,8 @@
   "dependencies": {
     "express": "^4.17.1",
     "midi-player-js": "^2.0.5",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.3.0",
+    "rpio": "^2.1.1",
+    "johnny-five": "^1.4.0"
   }
 }
