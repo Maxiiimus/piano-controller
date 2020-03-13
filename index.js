@@ -44,7 +44,7 @@ board.on("ready", () => {
     srclr.high(); // Set to high to enable transfer
 
     const register = new ShiftRegister({
-        size: 8,
+        //size: 8,
         pins: {
             data: SER_Pin,
             clock: SRCK_Pin,
@@ -55,10 +55,25 @@ board.on("ready", () => {
     let value = 0b00000000;
     let upper = 0b10000000;
     let lower = 0b00000000;
-
+    let swap = true;
+    let a = 0b01010101;
+    let b = 0b10101010;
+    let count = 0;
+    
     function next() {
-        register.send(value = value > lower ? value >> 1 : upper);
-        setTimeout(next, 200);
+        if (swap) { 
+            //register.send(value = value > lower ? value >> 1 : upper);
+            register.send(a);
+        } else {
+            register.send(b);
+        }
+        swap = !swap;
+        count++;
+        if (count < 50) {
+            setTimeout(next, 200);
+        } else {
+            register.send(lower);
+        }
     }
 
     next();
