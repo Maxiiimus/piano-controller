@@ -17,6 +17,7 @@
     "midi-player-js": "^2.0.5",
     "socket.io": "^2.3.0",
     "rpio": "^2.1.1",
-    "johnny-five": "^1.4.0"
+    "johnny-five": "^1.4.0",
+    "raspi-io": "^11.0.0"
   }
 }

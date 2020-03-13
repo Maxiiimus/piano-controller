@@ -13,7 +13,8 @@ const MidiPlayer = require('midi-player-js');
 const path = require('path');
 const fs = require('fs');
 //const rpio = require('rpio');
-const {Board, ShiftRegister} = require("johnny-five");
+const {Pin, Board, ShiftRegister} = require("johnny-five");
+const {RaspiIO} = require("raspi-io");
 
 /**
  * App Variables
@@ -22,17 +23,24 @@ const {Board, ShiftRegister} = require("johnny-five");
 //const app = express();
 const port = process.env.PORT || "8000";
 
-const SER_Pin = 11;   // Serial Input SER (18 on chip)
-const RCK_Pin = 13;   // Register Clock (RCLK, 7 on chip) - Latch pin
-const SRCK_Pin = 15   // Shift-Register Clock (SRCLK, 8 on chip) - Clock pin
-const SRCLR_PIN = 16; // Shift_Register clear (SRCLR - 3 on chip) - Set to high to enable storage transfer
+//const SER_Pin = 11;   // Serial Input SER (18 on chip)
+//const RCK_Pin = 13;   // Register Clock (RCLK, 7 on chip) - Latch pin
+//const SRCK_Pin = 15;   // Shift-Register Clock (SRCLK, 8 on chip) - Clock pin
+//const SRCLR_PIN = 16; // Shift_Register clear (SRCLR - 3 on chip) - Set to high to enable storage transfer
 
-const board = new Board();
+const SER_Pin = 'GPIO17';   // Serial Input SER (18 on chip)
+const RCK_Pin = 'GPIO27';   // Register Clock (RCLK, 7 on chip) - Latch pin
+const SRCK_Pin = 'GPIO22';   // Shift-Register Clock (SRCLK, 8 on chip) - Clock pin
+const SRCLR_PIN = 'GPIO23'; // Shift_Register clear (SRCLR - 3 on chip) - Set to high to enable storage transfer
+
+const board = new Board({
+    io: new RaspiIO()
+});
 
 // For use with 74HC595 chip
 
 board.on("ready", () => {
-    let srclr = new five.Pin(SRCLR_PIN);
+    let srclr = new Pin(SRCLR_PIN);
     srclr.high(); // Set to high to enable transfer
 
     const register = new ShiftRegister({
@@ -45,8 +53,8 @@ board.on("ready", () => {
     });
 
     let value = 0b00000000;
-    let upper = 0b10001000;
-    let lower = 0b00010001;
+    let upper = 0b10000000;
+    let lower = 0b00000000;
 
     function next() {
         register.send(value = value > lower ? value >> 1 : upper);
