@@ -14,7 +14,11 @@ const path = require('path');
 const fs = require('fs');
 //const rpio = require('rpio');
 const {Pin, Board, ShiftRegister} = require("johnny-five");
-const {RaspiIO} = require("raspi-io");
+const isPi = require('detect-rpi')();
+
+if (isPi) {
+    const {RaspiIO} = require("raspi-io");
+}
 
 /**
  * App Variables
@@ -33,60 +37,113 @@ const RCK_Pin = 'GPIO27';   // Register Clock (RCLK, 7 on chip) - Latch pin
 const SRCK_Pin = 'GPIO22';   // Shift-Register Clock (SRCLK, 8 on chip) - Clock pin
 const SRCLR_PIN = 'GPIO23'; // Shift_Register clear (SRCLR - 3 on chip) - Set to high to enable storage transfer
 
-const board = new Board({
-    io: new RaspiIO()
-});
 
-// For use with 74HC595 chip
 
-board.on("ready", () => {
-    let srclr = new Pin(SRCLR_PIN);
-    srclr.high(); // Set to high to enable transfer
+let register;
 
-    const register = new ShiftRegister({
-        //size: 8,
-        pins: {
-            data: SER_Pin,
-            clock: SRCK_Pin,
-            latch: RCK_Pin
-        }
+if (isPi) {
+    const board = new Board({
+        io: new RaspiIO()
     });
 
-    let value = 0b00000000;
-    let upper = 0b10000000;
-    let lower = 0b00000000;
-    let swap = true;
-    let a = 0b01010101;
-    let b = 0b10101010;
-    let count = 0;
-    
-    function next() {
-        if (swap) { 
-            //register.send(value = value > lower ? value >> 1 : upper);
-            register.send(a);
-        } else {
-            register.send(b);
-        }
-        swap = !swap;
-        count++;
-        if (count < 50) {
-            setTimeout(next, 200);
-        } else {
-            register.send(lower);
-        }
-    }
 
-    next();
-});
+    board.on("ready", () => {
+        let srclr = new Pin(SRCLR_PIN);
+        srclr.high(); // Set to high to enable transfer
+
+        register = new ShiftRegister({
+            //size: 8,
+            pins: {
+                data: SER_Pin,
+                clock: SRCK_Pin,
+                latch: RCK_Pin
+            }
+        });
+
+        /*
+        let value = 0b00000000;
+        let upper = 0b10000000;
+        let lower = 0b00000000;
+        let swap = true;
+        let a = 0b01010101;
+        let b = 0b10101010;
+        let count = 0;
+
+        function next() {
+            if (swap) {
+                //register.send(value = value > lower ? value >> 1 : upper);
+                register.send(a);
+            } else {
+                register.send(b);
+            }
+            swap = !swap;
+            count++;
+            if (count < 50) {
+                setTimeout(next, 200);
+            } else {
+                register.send(lower);
+            }
+        }
+
+        next();
+        */
+    });
+}
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-//app.get('/', function(req, res){
-//    res.sendFile(__dirname + '/public/index.html');
-//});
+let led_state = 0b00000000;
+
+function getLEDByte(led_id) {
+    switch (led_id) {
+        case "LED0":
+            return 0b00000001;
+        case "LED1":
+            return 0b00000010;
+        case "LED2":
+            return 0b00000100;
+        case "LED3":
+            return 0b00001000;
+        case "LED4":
+            return 0b00010000;
+        case "LED5":
+            return 0b00100000;
+        case "LED6":
+            return 0b01000000;
+        case "LED7":
+            return 0b10000000;
+        default:
+            return 0b00000000;
+    }
+}
+
+function dec2bin(dec){
+    return (dec >>> 0).toString(2);
+}
+
+function setLEDs(led_val) {
+    led_state ^= led_val; // toggle by bitwise XOR
+    if (isPi) {
+        register.send(led_state); // update the register state
+    }
+    console.log("LEDS: " + dec2bin(led_state));
+}
 
 io.on('connection', function(socket){
     console.log('a user connected');
+    io.emit('update switches', led_state);
+
+    socket.on('switch on', function(switch_id){
+        console.log('Switch On: ' + switch_id);
+        setLEDs(getLEDByte(switch_id));
+        io.emit('update switches', led_state);
+    });
+
+    socket.on('switch off', function(switch_id){
+        console.log('Switch Off: ' + switch_id);
+        setLEDs(getLEDByte(switch_id));
+        io.emit('update switches', led_state);
+    });
 
     socket.on('chat message', function(msg){
         console.log('message: ' + msg);
@@ -97,9 +154,10 @@ io.on('connection', function(socket){
         console.log('user disconnected');
     });
 
+    /*
     //joining path of directory
     const directoryPath = path.join(__dirname, 'midis');
-    //passsing directoryPath and callback function
+    //passing directoryPath and callback function
     fs.readdir(directoryPath, function (err, files) {
         //handling error
         if (err) {
@@ -111,7 +169,8 @@ io.on('connection', function(socket){
             io.emit('add midi', file);
             console.log(file);
         });
-    });
+     });
+     */
 });
 
 /**
@@ -142,6 +201,6 @@ var Player = new MidiPlayer.Player(function(event) {
 });
 
 // Load a MIDI file
-Player.loadFile('./midis/Satisfaction.mid');
-Player.play();
+//Player.loadFile('./midis/Satisfaction.mid');
+//Player.play();
 

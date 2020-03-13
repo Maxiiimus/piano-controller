@@ -18,6 +18,7 @@
     "socket.io": "^2.3.0",
     "rpio": "^2.1.1",
     "johnny-five": "^1.4.0",
-    "raspi-io": "^11.0.0"
+    "raspi-io": "^11.0.0",
+    "detect-rpi": "^1.4.0"
   }
 }
