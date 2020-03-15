@@ -1,9 +1,3 @@
-// index.js
-
-/**
- * Required External Modules
- */
-
 const express = require("express");
 //const path = require("path");
 const app = express();
@@ -13,12 +7,13 @@ const MidiPlayer = require('midi-player-js');
 const path = require('path');
 const fs = require('fs');
 //const rpio = require('rpio');
-const {Pin, Board, ShiftRegister} = require("johnny-five");
-const isPi = require('detect-rpi')();
+//const {Pin, Board, ShiftRegister} = require("johnny-five");
+//const isPi = require('detect-rpi')();
+const keyRegister = require('./key-register');
 
-if (isPi) {
-    const {RaspiIO} = require("raspi-io");
-}
+//if (isPi) {
+//    const {RaspiIO} = require("raspi-io");
+//}
 
 /**
  * App Variables
@@ -26,74 +21,20 @@ if (isPi) {
 
 //const app = express();
 const port = process.env.PORT || "8000";
-
-//const SER_Pin = 11;   // Serial Input SER (18 on chip)
-//const RCK_Pin = 13;   // Register Clock (RCLK, 7 on chip) - Latch pin
-//const SRCK_Pin = 15;   // Shift-Register Clock (SRCLK, 8 on chip) - Clock pin
-//const SRCLR_PIN = 16; // Shift_Register clear (SRCLR - 3 on chip) - Set to high to enable storage transfer
-
-const SER_Pin = 'GPIO17';   // Serial Input SER (18 on chip)
-const RCK_Pin = 'GPIO27';   // Register Clock (RCLK, 7 on chip) - Latch pin
-const SRCK_Pin = 'GPIO22';   // Shift-Register Clock (SRCLK, 8 on chip) - Clock pin
-const SRCLR_PIN = 'GPIO23'; // Shift_Register clear (SRCLR - 3 on chip) - Set to high to enable storage transfer
-
-
-
-let register;
-
-if (isPi) {
-    const board = new Board({
-        io: new RaspiIO()
-    });
-
-
-    board.on("ready", () => {
-        let srclr = new Pin(SRCLR_PIN);
-        srclr.high(); // Set to high to enable transfer
-
-        register = new ShiftRegister({
-            //size: 8,
-            pins: {
-                data: SER_Pin,
-                clock: SRCK_Pin,
-                latch: RCK_Pin
-            }
-        });
-
-        /*
-        let value = 0b00000000;
-        let upper = 0b10000000;
-        let lower = 0b00000000;
-        let swap = true;
-        let a = 0b01010101;
-        let b = 0b10101010;
-        let count = 0;
-
-        function next() {
-            if (swap) {
-                //register.send(value = value > lower ? value >> 1 : upper);
-                register.send(a);
-            } else {
-                register.send(b);
-            }
-            swap = !swap;
-            count++;
-            if (count < 50) {
-                setTimeout(next, 200);
-            } else {
-                register.send(lower);
-            }
-        }
-
-        next();
-        */
-    });
-}
+const numModules = 1;
+const registerSize = 8;
+const SER_Pin = 11;   // Serial Input SER (18 on chip)
+const RCK_Pin = 13;   // Register Clock (RCLK, 7 on chip) - Latch pin
+const SRCK_Pin = 15;   // Shift-Register Clock (SRCLK, 8 on chip) - Clock pin
+const SRCLR_PIN = 16; // Shift_Register clear (SRCLR - 3 on chip) - Set to high to enable storage transfer
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-let led_state = 0b00000000;
+//let led_state = 0b00000000;
+let register = new keyRegister(SER_Pin, SRCK_Pin, RCK_Pin, SRCLR_PIN);
+let keys = new Buffer(numModules * registerSize).fill(0);
 
+/*
 function getLEDByte(led_id) {
     switch (led_id) {
         case "LED0":
@@ -116,41 +57,43 @@ function getLEDByte(led_id) {
             return 0b00000000;
     }
 }
+*/
 
+function getKeyIndex(ledId) {
+    return parseInt(ledId.substring(3));
+}
+
+/*
 function dec2bin(dec){
     return (dec >>> 0).toString(2);
 }
 
 function setLEDs(led_val) {
     led_state ^= led_val; // toggle by bitwise XOR
-    if (isPi) {
-        register.send(led_state); // update the register state
-    }
+    register.send(keys); // update the register state
+
     console.log("LEDS: " + dec2bin(led_state));
 }
+*/
 
-io.on('connection', function(socket){
+function toggleKeyValue(index) {
+    keys[index] ^= 1;    // toggle by bitwise XOR
+    register.send(keys); // update the register state
+
+    console.log("LEDS: " + JSON.stringify(keys));
+}
+
+io.on('connection', function (socket) {
     console.log('a user connected');
-    io.emit('update switches', led_state);
+    io.emit('update switches', JSON.stringify(keys));
 
-    socket.on('switch on', function(switch_id){
-        console.log('Switch On: ' + switch_id);
-        setLEDs(getLEDByte(switch_id));
-        io.emit('update switches', led_state);
-    });
-
-    socket.on('switch off', function(switch_id){
+    socket.on('toggle switch', function (switch_id) {
         console.log('Switch Off: ' + switch_id);
-        setLEDs(getLEDByte(switch_id));
-        io.emit('update switches', led_state);
+        toggleKeyValue(getKeyIndex(switch_id));
+        io.emit('update switches', JSON.stringify(keys));
     });
 
-    socket.on('chat message', function(msg){
-        console.log('message: ' + msg);
-        io.emit('chat message', msg);
-    });
-
-    socket.on('disconnect', function(){
+    socket.on('disconnect', function () {
         console.log('user disconnected');
     });
 
@@ -177,15 +120,15 @@ io.on('connection', function(socket){
  * Server Activation
  */
 
-http.listen(port, function(){
+http.listen(port, function () {
     console.log(`listening to requests on http://localhost:${port}`);
 });
 
 // Initialize player and register event handler
-var Player = new MidiPlayer.Player(function(event) {
+var Player = new MidiPlayer.Player(function (event) {
     //console.log(event);
     if (event.name === "Note on") {
-        if (event.velocity === 0 ) {
+        if (event.velocity === 0) {
             io.emit('note off', "KEY_" + event.noteNumber);
         } else {
             io.emit('note on', "KEY_" + event.noteNumber);
@@ -195,7 +138,7 @@ var Player = new MidiPlayer.Player(function(event) {
         io.emit('note off', "KEY_" + event.noteNumber);
     }
     //if(event.track === 3) {
-        //console.log(event.string);
+    //console.log(event.string);
     //    io.emit('chat message', JSON.stringify(event.string));
     //}
 });

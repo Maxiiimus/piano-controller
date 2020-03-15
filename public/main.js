@@ -31,28 +31,21 @@ socket.on('note off', function (key_id) {
 });
 
  */
+
     socket.on('update switches', function (switch_bits) {
-        let mask = 1;
+        //let mask = 1;
+        //console.log("incoming switch_bits: " + switch_bits);
+        // The keys (on/off) are in a Buffer array of bits sent by the server
+        let keys = JSON.parse(switch_bits).data;
+
         for (let i = 0; i < 8; i++) {
-            document.getElementById("LED"+i).checked = switch_bits & mask;
-            mask <<= 1;
+            document.getElementById("LED"+i).checked = keys[i];// & mask;
+            //console.log("LED" + i + ":" + keys[i]);//(switch_bits));
+            //mask <<= 1;
         }
-    });
-
-    socket.on('switch on', function (switch_id) {
-        document.getElementById(switch_id).checked = true;
-    });
-
-    socket.on('switch off', function (switch_id) {
-        document.getElementById(switch_id).checked = false;
     });
 
     function handleClick(cb) {
-        //display("Clicked, new value = " + cb.checked);
-        if (cb.checked) {
-            socket.emit('switch on', cb.id);
-        } else {
-            socket.emit('switch off', cb.id);
-        }
+        socket.emit('toggle switch', cb.id);
     }
 //});
