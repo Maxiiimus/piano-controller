@@ -168,7 +168,7 @@
         </style>
     </head>
     <body>
-
+        <!--
         <div align="center">
             <br>
             <h1>Let's flip some bits!</h1>
@@ -213,7 +213,12 @@
             <span class="slider round"></span>
         </label>
         </div>
-        <!--
+        -->
+        <br>
+        <div align="center">
+            <h1>Let's play the piano!</h1>
+        </div>
+        <br>
         <div id="keyboard" class="keyboard-holder" style="width: 1100px;">
             <div class="white key" id="KEY_21" style="width: 20px; height: 100px; left: 0px;"></div>
             <div class="black key" id="KEY_22" style="width: 15px; height: 60px; left: 12px;"></div>
@@ -313,12 +318,13 @@
             <div class="white key" id="KEY_108" style="width: 20px; height: 100px; left: 1020px;"></div>
         </div>
 
-        <ul id="messages"></ul>
         <form action="">
-            <input id="m" autocomplete="off"/>
-            <button>Send</button>
-        </form>
-        -->
+            <button onclick='testAllKeys();'>Test All Keys</button>
+            <button onclick='testPowerDraw();'>Test Power Draw</button>
+            <button onclick='playSong();'>Play Test Song</button>
+            <button onclick='stopTests();'>Stop All</button>
+       </form>
+
         <script src="/socket.io/socket.io.js"></script>
         <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
         <script src="main.js"></script>

@@ -7,6 +7,7 @@ const MidiPlayer = require('midi-player-js');
 const path = require('path');
 const fs = require('fs');
 const keyRegister = require('./key-register');
+//const midiTools = require('./piano-midi-player');
 
 /**
  * App Variables
@@ -14,7 +15,7 @@ const keyRegister = require('./key-register');
 
 //const app = express();
 const port = process.env.PORT || "8000";
-const numModules = 4;
+const numModules = 11;
 const registerSize = 8;
 const SER_Pin = 11;   // Serial Input SER (18 on chip)
 const RCK_Pin = 13;   // Register Clock (RCLK, 7 on chip) - Latch pin
@@ -39,39 +40,128 @@ function toggleKeyValue(index) {
 }
 
 let keyIndex = 0;
-let myInterval = setInterval(testAllKeys, 500);
+let myInterval; // = setInterval(testAllKeys, 500);
+
+function runTest() {
+    keyIndex = 0;
+    keys.fill(0);
+    if (myInterval) {
+        clearInterval(myInterval);
+    }
+    myInterval = setInterval(testAllKeys, 500);
+}
 
 function testAllKeys() {
     keys[keyIndex] = 1;
     if (keyIndex > 0) {
         keys[keyIndex-1] = 0;
     }
-    if (keyIndex >= numModules * registerSize - 1) {
+    if (keyIndex >= numModules * registerSize) {
         clearInterval(myInterval);
     }
     register.send(keys);
-    console.log("Keys: " + JSON.stringify(keys));
+    io.emit('update keys', JSON.stringify(keys));
+    //console.log("Keys: " + JSON.stringify(keys));
     keyIndex++;
 }
 
-testAllKeys();
+function runPowerTest() {
+    keyIndex = 0;
+    keys.fill(0);
+    if (myInterval) {
+        clearInterval(myInterval);
+    }
+    myInterval = setInterval(testPowerDraw, 500);
+}
+
+function testPowerDraw() {
+    keys[keyIndex] = 1;
+
+    if (keyIndex >= numModules * registerSize) {
+        register.send(keys);
+        io.emit('update keys', JSON.stringify(keys));
+        clearInterval(myInterval);
+    }
+    register.send(keys);
+    io.emit('update keys', JSON.stringify(keys));
+    keyIndex++;
+}
+
+function stopTests() {
+    if (myInterval) {
+        clearInterval(myInterval);
+    }
+    Player.stop();
+
+    keys.fill(0);
+    register.send(keys);
+    io.emit('update keys', JSON.stringify(keys));
+}
+
+function playSong() {
+    if (myInterval) {
+        clearInterval(myInterval);
+    }
+    keys.fill(0);
+    register.send(keys);
+
+    // Load a MIDI file
+    Player.loadFile('./midis/Dead_South/In_Hell_Ill_Be_In_Good_Company.mid');
+    console.log("Song length: " + Player.getSongTime());
+    /*Player.tracks.forEach(function(track){
+        track.events.forEach(function(event){
+            //console.log("Instrument: " + JSON.stringify(event));
+            if(event.name != "Note on") {
+                //let trackNameEvent = event.values[0].values[0];
+                //store track instrument in config
+                console.log("Event: " + JSON.stringify(event));
+                //console.log("Instrument: " + trackNameEvent.string.trim());
+            }
+        });
+        //console.log("Track: " + track.name);
+    });
+   */
+    Player.play();
+}
 
 io.on('connection', function (socket) {
     console.log('a user connected');
-    io.emit('update switches', JSON.stringify(keys));
+    //io.emit('update switches', JSON.stringify(keys));
+
+    socket.on("test all keys", function() {
+        runTest();
+    });
+
+    socket.on("test power draw", function() {
+        runPowerTest();
+    });
+
+    socket.on("stop tests", function() {
+        stopTests();
+    });
+
+    socket.on("play song", function() {
+        playSong();
+    });
+
+    socket.on('update key', function (id, keyState) {
+        if (id >= 0 && id <= keys.length) {
+            keys[id] = keyState;
+            io.emit('update keys', JSON.stringify(keys));
+            console.log('Updated keys[' + id + ']' + ": " + keyState);
+        }
+    });
 
     socket.on('toggle switch', function (switch_id) {
         console.log('Switch Off: ' + switch_id);
         toggleKeyValue(getKeyIndex(switch_id));
-        io.emit('update switches', JSON.stringify(keys));
+        //io.emit('update switches', JSON.stringify(keys));
     });
 
     socket.on('disconnect', function () {
         console.log('user disconnected');
     });
 });
-
-
 
 /**
  * Server Activation
@@ -82,24 +172,20 @@ http.listen(port, function () {
 });
 
 // Initialize player and register event handler
-var Player = new MidiPlayer.Player(function (event) {
-    //console.log(event);
-    if (event.name === "Note on") {
-        if (event.velocity === 0) {
-            io.emit('note off', "KEY_" + event.noteNumber);
-            console.log('note off: ' + event.noteNumber);
-        } else {
-            io.emit('note on', "KEY_" + event.noteNumber);
-            console.log('note on: ' + event.noteNumber);
+let Player = new MidiPlayer.Player(function (event) {
+    let keyIndex = 21;
+    let keyVal = 0;
+    if (event.name === "Note on" || event.name === "Note off") {
+        if (event.velocity !== 0) {
+            keyVal = 1;
         }
-    }
-    if (event.name === "Note off") {
-        io.emit('note off', "KEY_" + event.noteNumber);
-        console.log('note off: ' + event.noteNumber);
+
+        keyIndex = event.noteNumber - 21;
+        keys[keyIndex] = keyVal;
+        register.send(keys);
+        io.emit('update keys', JSON.stringify(keys));
+        console.log("Key " + event.noteNumber + ": " + (keyVal ? "ON" : "OFF"));
     }
 });
 
-// Load a MIDI file
-//Player.loadFile('./midis/Dead_South/In_Hell_Ill_Be_In_Good_Company.mid');
-//Player.play();
 

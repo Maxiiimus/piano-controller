@@ -35,7 +35,10 @@ class KeyRegister {
         Send an array of bits to the shift registers
         Will send all values of the Buffer, regardless of the number of registers
      */
-    send(data) {
+    send(original_data) {
+        //console.log("Incoming  Data: " + JSON.stringify(original_data));
+        let data = this.reorderKeyData(original_data);
+        //console.log("Reordered Data: " + JSON.stringify(data));
 
         // Set data and clock pins to low to start
         rpio.write(this.dataPin, rpio.LOW);
@@ -54,6 +57,29 @@ class KeyRegister {
         // All bits are in shift register memory, now cycle the latch pin to push to outputs
         rpio.write(this.latchPin, rpio.HIGH);
         rpio.write(this.latchPin, rpio.LOW);
+    }
+
+    // Unfortunately, the hardware input and output ports on the key controller modules are backward.
+    // Therefore, the valves are in reverse order for each module of 8 valves and keys.
+    // Instead of having all of the wires or tubes mixed around, this function reorders the buffer array
+    // to load bits in the mapping to the keys on the piano.
+    // If this has a measurable impact on performance, then will address in hardware.
+    reorderKeyData(original_data) {
+        let data = Buffer.from(original_data);
+        let numModules = data.length / 8; // Get the number of modules. Each module has 8 keys
+        //console.log("NumModules: " + numModules);
+        let i, j, offset, temp;
+
+        // Loop through each module and swap the order
+        for (i = 0; i < numModules; i++) {
+            offset = i * 8;
+            for (j = 0; j < 4; j++) {
+                temp = data[offset+j];
+                data[offset+j] = data[offset + 7 - j];
+                data[offset + 7 - j] = temp;
+            }
+        }
+        return data;
     }
 
     /*
