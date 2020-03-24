@@ -149,6 +149,7 @@ io.on('connection', function (socket) {
             keys[id] = keyState;
             io.emit('update keys', JSON.stringify(keys));
             console.log('Updated keys[' + id + ']' + ": " + keyState);
+            register.send(keys);
         }
     });
 

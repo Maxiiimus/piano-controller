@@ -36,9 +36,9 @@ class KeyRegister {
         Will send all values of the Buffer, regardless of the number of registers
      */
     send(original_data) {
-        //console.log("Incoming  Data: " + JSON.stringify(original_data));
+        console.log("Incoming  Data: " + JSON.stringify(original_data));
         let data = this.reorderKeyData(original_data);
-        //console.log("Reordered Data: " + JSON.stringify(data));
+        console.log("Reordered Data: " + JSON.stringify(data));
 
         // Set data and clock pins to low to start
         rpio.write(this.dataPin, rpio.LOW);

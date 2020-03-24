@@ -65,6 +65,8 @@ socket.on('update keys', function (incoming_keys) {
 for (let i = 21; i < 21 + 88; i++) {
     let key = document.getElementById("KEY_" + i);
     key.note = i;
+    key.state = false;
+    
     key.onmousedown = function () {
         setKeyState(key, true)
     };
@@ -84,6 +86,13 @@ for (let i = 21; i < 21 + 88; i++) {
 }
 
 function setKeyState(key, keyState) {
+    // Just return if the state hasn't changed
+    if (key.state == keyState) {
+        return;
+    }
+    else {
+        key.state = keyState;
+    }
     console.log("Key " + key.note + ": " + keyState);
     socket.emit('update key', key.note - 21, keyState);
 }
