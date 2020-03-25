@@ -106,7 +106,7 @@ function playSong() {
     register.send(keys);
 
     // Load a MIDI file
-    Player.loadFile('./midis/Dead_South/In_Hell_Ill_Be_In_Good_Company.mid');
+    Player.loadFile('./midis/Lil_Nas_X/Old_Town_Road.mid');
     console.log("Song length: " + Player.getSongTime());
     /*Player.tracks.forEach(function(track){
         track.events.forEach(function(event){
