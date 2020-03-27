@@ -1,0 +1,179 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font: 13px Helvetica, Arial;
+}
+
+form {
+    background: #000;
+    padding: 3px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+form input {
+    border: 0;
+    padding: 10px;
+    width: 90%;
+    margin-right: .5%;
+}
+
+form button {
+    width: 9%;
+    background: rgb(130, 224, 255);
+    border: none;
+    padding: 10px;
+}
+
+#messages {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#messages li {
+    padding: 5px 10px;
+}
+
+#messages li:nth-child(odd) {
+    background: #eee;
+}
+
+.key {
+    position: absolute;
+    font-family: Helvetica;
+    font-weight: 100;
+    font-size: 12px;
+    border: 1px solid rgba(32, 32, 32, 0.2);
+    border-radius: 0px 0px 5px 5px;
+    cursor: pointer;
+    box-shadow: 0px 5px 1px rgba(32, 32, 32, 0.2);
+    -webkit-transition: margin 0.05s ease, background-color 0.05s ease, box-shadow 0.05s ease;
+}
+
+.key:hover {
+    background-color: #71DB90;
+}
+
+.key .label {
+    position: absolute;
+    bottom: 15px;
+    text-align: center;
+    left: 0px;
+    right: 0px;
+}
+
+.keyLabel {
+    font-weight: 900;
+    text-shadow: 0px -1px 5px #EBF508;
+    font-size: 15px;
+}
+
+.black {
+    background-color: rgb(32, 32, 32);
+    color: #ffffff;
+    z-index: 1;
+    text-shadow: 0px -1px 1px #FF0000;
+}
+
+.white {
+    background-color: #F2F2DE;
+    color: #3008F5;
+    z-index: 0;
+    text-shadow: 0px 1px 1px #08E8F5;
+}
+
+.keyboard-holder {
+    margin: 15px auto;
+    height: 100px;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+}
+
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+ul.songlist {
+    background-color: lightblue;
+    width: 250px;
+    height: 300px;
+    overflow: auto;
+}
+
+.slidecontainer {
+    width: 100%;
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 200px;
+    height: 50px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.slider:hover {
+    opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100px;
+    height: 50px;
+    background: #4CAF50;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 100px;
+    height: 50px;
+    background: #4CAF50;
+    cursor: pointer;
+}

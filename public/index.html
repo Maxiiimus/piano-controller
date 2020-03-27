@@ -2,328 +2,170 @@
 <html>
     <head>
         <title>Socket.IO chat</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
-            body {
-                font: 13px Helvetica, Arial;
-            }
-
-            form {
-                background: #000;
-                padding: 3px;
-                position: fixed;
-                bottom: 0;
-                width: 100%;
-            }
-
-            form input {
-                border: 0;
-                padding: 10px;
-                width: 90%;
-                margin-right: .5%;
-            }
-
-            form button {
-                width: 9%;
-                background: rgb(130, 224, 255);
+            .btn {
+                background-color: DodgerBlue;
                 border: none;
-                padding: 10px;
-            }
-
-            #messages {
-                list-style-type: none;
-                margin: 0;
-                padding: 0;
-            }
-
-            #messages li {
-                padding: 5px 10px;
-            }
-
-            #messages li:nth-child(odd) {
-                background: #eee;
-            }
-
-            .key {
-                position: absolute;
-                font-family: Helvetica;
-                font-weight: 100;
-                font-size: 12px;
-                border: 1px solid rgba(32, 32, 32, 0.2);
-                border-radius: 0px 0px 5px 5px;
+                color: white;
+                padding: 12px 16px;
+                font-size: 16px;
                 cursor: pointer;
-                box-shadow: 0px 5px 1px rgba(32, 32, 32, 0.2);
-                -webkit-transition: margin 0.05s ease, background-color 0.05s ease, box-shadow 0.05s ease;
+                width: 100px;
+                height: 50px;
             }
 
-            .key:hover {
-                background-color: #71DB90;
-            }
-
-            .key .label {
-                position: absolute;
-                bottom: 15px;
-                text-align: center;
-                left: 0px;
-                right: 0px;
-            }
-
-            .keyLabel {
-                font-weight: 900;
-                text-shadow: 0px -1px 5px #EBF508;
-                font-size: 15px;
-            }
-
-            .black {
-                background-color: rgb(32, 32, 32);
-                color: #ffffff;
-                z-index: 1;
-                text-shadow: 0px -1px 1px #FF0000;
-            }
-
-            .white {
-                background-color: #F2F2DE;
-                color: #3008F5;
-                z-index: 0;
-                text-shadow: 0px 1px 1px #08E8F5;
-            }
-
-            .keyboard-holder {
-                margin: 15px auto;
-                height: 100px;
-                position: relative;
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -o-user-select: none;
-            }
-
-            /* The switch - the box around the slider */
-            .switch {
-                position: relative;
-                display: inline-block;
-                width: 60px;
-                height: 34px;
-            }
-
-            /* Hide default HTML checkbox */
-            .switch input {
-                opacity: 0;
-                width: 0;
-                height: 0;
-            }
-
-            /* The slider */
-            .slider {
-                position: absolute;
-                cursor: pointer;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: #ccc;
-                -webkit-transition: .4s;
-                transition: .4s;
-            }
-
-            .slider:before {
-                position: absolute;
-                content: "";
-                height: 26px;
-                width: 26px;
-                left: 4px;
-                bottom: 4px;
-                background-color: white;
-                -webkit-transition: .4s;
-                transition: .4s;
-            }
-
-            input:checked + .slider {
-                background-color: #2196F3;
-            }
-
-            input:focus + .slider {
-                box-shadow: 0 0 1px #2196F3;
-            }
-
-            input:checked + .slider:before {
-                -webkit-transform: translateX(26px);
-                -ms-transform: translateX(26px);
-                transform: translateX(26px);
-            }
-
-            /* Rounded sliders */
-            .slider.round {
-                border-radius: 34px;
-            }
-
-            .slider.round:before {
-                border-radius: 50%;
+            /* Darker background on mouse-over */
+            .btn:hover {
+                background-color: RoyalBlue;
             }
         </style>
     </head>
     <body>
-        <!--
-        <div align="center">
-            <br>
-            <h1>Let's flip some bits!</h1>
-            <br>
-        <label class="switch">
-            <input id="LED0" type="checkbox" onclick='handleClick(this);'>
-            <span class="slider round"></span>
-        </label>
-
-        <label class="switch">
-            <input id="LED1" type="checkbox" onclick='handleClick(this);'>
-            <span class="slider round"></span>
-        </label>
-
-        <label class="switch">
-            <input id="LED2" type="checkbox" onclick='handleClick(this);'>
-            <span class="slider round"></span>
-        </label>
-
-        <label class="switch">
-            <input id="LED3" type="checkbox" onclick='handleClick(this);'>
-            <span class="slider round"></span>
-        </label>
-
-        <label class="switch">
-            <input id="LED4" type="checkbox" onclick='handleClick(this);'>
-            <span class="slider round"></span>
-        </label>
-
-        <label class="switch">
-            <input id="LED5" type="checkbox" onclick='handleClick(this);'>
-            <span class="slider round"></span>
-        </label>
-
-        <label class="switch">
-            <input id="LED6" type="checkbox" onclick='handleClick(this);'>
-            <span class="slider round"></span>
-        </label>
-
-        <label class="switch">
-            <input id="LED7" type="checkbox" onclick='handleClick(this);'>
-            <span class="slider round"></span>
-        </label>
-        </div>
-        -->
         <br>
         <div align="center">
             <h1>Let's play the piano!</h1>
         </div>
         <br>
-        <div id="keyboard" class="keyboard-holder" style="width: 1100px;">
-            <div class="white key" id="KEY_21" style="width: 20px; height: 100px; left: 0px;"></div>
-            <div class="black key" id="KEY_22" style="width: 15px; height: 60px; left: 12px;"></div>
-            <div class="white key" id="KEY_23" style="width: 20px; height: 100px; left: 20px;"></div>
 
-            <div class="white key" id="KEY_24" style="width: 20px; height: 100px; left: 40px;"></div>
-            <div class="black key" id="KEY_25" style="width: 15px; height: 60px; left: 52px;"></div>
-            <div class="white key" id="KEY_26" style="width: 20px; height: 100px; left: 60px;"></div>
-            <div class="black key" id="KEY_27" style="width: 15px; height: 60px; left: 72px;"></div>
-            <div class="white key" id="KEY_28" style="width: 20px; height: 100px; left: 80px;"></div>
-            <div class="white key" id="KEY_29" style="width: 20px; height: 100px; left: 100px;"></div>
-            <div class="black key" id="KEY_30" style="width: 15px; height: 60px; left: 112px;"></div>
-            <div class="white key" id="KEY_31" style="width: 20px; height: 100px; left: 120px;"></div>
-            <div class="black key" id="KEY_32" style="width: 15px; height: 60px; left: 132px;"></div>
-            <div class="white key" id="KEY_33" style="width: 20px; height: 100px; left: 140px;"></div>
-            <div class="black key" id="KEY_34" style="width: 15px; height: 60px; left: 152px;"></div>
-            <div class="white key" id="KEY_35" style="width: 20px; height: 100px; left: 160px;"></div>
-
-            <div class="white key" id="KEY_36" style="width: 20px; height: 100px; left: 180px;"></div>
-            <div class="black key" id="KEY_37" style="width: 15px; height: 60px; left: 192px;"></div>
-            <div class="white key" id="KEY_38" style="width: 20px; height: 100px; left: 200px;"></div>
-            <div class="black key" id="KEY_39" style="width: 15px; height: 60px; left: 212px;"></div>
-            <div class="white key" id="KEY_40" style="width: 20px; height: 100px; left: 220px;"></div>
-            <div class="white key" id="KEY_41" style="width: 20px; height: 100px; left: 240px;"></div>
-            <div class="black key" id="KEY_42" style="width: 15px; height: 60px; left: 252px;"></div>
-            <div class="white key" id="KEY_43" style="width: 20px; height: 100px; left: 260px;"></div>
-            <div class="black key" id="KEY_44" style="width: 15px; height: 60px; left: 272px;"></div>
-            <div class="white key" id="KEY_45" style="width: 20px; height: 100px; left: 280px;"></div>
-            <div class="black key" id="KEY_46" style="width: 15px; height: 60px; left: 292px;"></div>
-            <div class="white key" id="KEY_47" style="width: 20px; height: 100px; left: 300px;"></div>
-
-            <div class="white key" id="KEY_48" style="width: 20px; height: 100px; left: 320px;"></div>
-            <div class="black key" id="KEY_49" style="width: 15px; height: 60px; left: 332px;"></div>
-            <div class="white key" id="KEY_50" style="width: 20px; height: 100px; left: 340px;"></div>
-            <div class="black key" id="KEY_51" style="width: 15px; height: 60px; left: 352px;"></div>
-            <div class="white key" id="KEY_52" style="width: 20px; height: 100px; left: 360px;"></div>
-            <div class="white key" id="KEY_53" style="width: 20px; height: 100px; left: 380px;"></div>
-            <div class="black key" id="KEY_54" style="width: 15px; height: 60px; left: 392px;"></div>
-            <div class="white key" id="KEY_55" style="width: 20px; height: 100px; left: 400px;"></div>
-            <div class="black key" id="KEY_56" style="width: 15px; height: 60px; left: 412px;"></div>
-            <div class="white key" id="KEY_57" style="width: 20px; height: 100px; left: 420px;"></div>
-            <div class="black key" id="KEY_58" style="width: 15px; height: 60px; left: 432px;"></div>
-            <div class="white key" id="KEY_59" style="width: 20px; height: 100px; left: 440px;"></div>
-
-            <div class="white key" id="KEY_60" style="width: 20px; height: 100px; left: 460px;"></div>
-            <div class="black key" id="KEY_61" style="width: 15px; height: 60px; left: 472px;"></div>
-            <div class="white key" id="KEY_62" style="width: 20px; height: 100px; left: 480px;"></div>
-            <div class="black key" id="KEY_63" style="width: 15px; height: 60px; left: 492px;"></div>
-            <div class="white key" id="KEY_64" style="width: 20px; height: 100px; left: 500px;"></div>
-            <div class="white key" id="KEY_65" style="width: 20px; height: 100px; left: 520px;"></div>
-            <div class="black key" id="KEY_66" style="width: 15px; height: 60px; left: 532px;"></div>
-            <div class="white key" id="KEY_67" style="width: 20px; height: 100px; left: 540px;"></div>
-            <div class="black key" id="KEY_68" style="width: 15px; height: 60px; left: 552px;"></div>
-            <div class="white key" id="KEY_69" style="width: 20px; height: 100px; left: 560px;"></div>
-            <div class="black key" id="KEY_70" style="width: 15px; height: 60px; left: 572px;"></div>
-            <div class="white key" id="KEY_71" style="width: 20px; height: 100px; left: 580px;"></div>
-
-            <div class="white key" id="KEY_72" style="width: 20px; height: 100px; left: 600px;"></div>
-            <div class="black key" id="KEY_73" style="width: 15px; height: 60px; left: 612px;"></div>
-            <div class="white key" id="KEY_74" style="width: 20px; height: 100px; left: 620px;"></div>
-            <div class="black key" id="KEY_75" style="width: 15px; height: 60px; left: 632px;"></div>
-            <div class="white key" id="KEY_76" style="width: 20px; height: 100px; left: 640px;"></div>
-            <div class="white key" id="KEY_77" style="width: 20px; height: 100px; left: 660px;"></div>
-            <div class="black key" id="KEY_78" style="width: 15px; height: 60px; left: 672px;"></div>
-            <div class="white key" id="KEY_79" style="width: 20px; height: 100px; left: 680px;"></div>
-            <div class="black key" id="KEY_80" style="width: 15px; height: 60px; left: 692px;"></div>
-            <div class="white key" id="KEY_81" style="width: 20px; height: 100px; left: 700px;"></div>
-            <div class="black key" id="KEY_82" style="width: 15px; height: 60px; left: 712px;"></div>
-            <div class="white key" id="KEY_83" style="width: 20px; height: 100px; left: 720px;"></div>
-
-            <div class="white key" id="KEY_84" style="width: 20px; height: 100px; left: 740px;"></div>
-            <div class="black key" id="KEY_85" style="width: 15px; height: 60px; left: 752px;"></div>
-            <div class="white key" id="KEY_86" style="width: 20px; height: 100px; left: 760px;"></div>
-            <div class="black key" id="KEY_87" style="width: 15px; height: 60px; left: 772px;"></div>
-            <div class="white key" id="KEY_88" style="width: 20px; height: 100px; left: 780px;"></div>
-            <div class="white key" id="KEY_89" style="width: 20px; height: 100px; left: 800px;"></div>
-            <div class="black key" id="KEY_90" style="width: 15px; height: 60px; left: 812px;"></div>
-            <div class="white key" id="KEY_91" style="width: 20px; height: 100px; left: 820px;"></div>
-            <div class="black key" id="KEY_92" style="width: 15px; height: 60px; left: 832px;"></div>
-            <div class="white key" id="KEY_93" style="width: 20px; height: 100px; left: 840px;"></div>
-            <div class="black key" id="KEY_94" style="width: 15px; height: 60px; left: 852px;"></div>
-            <div class="white key" id="KEY_95" style="width: 20px; height: 100px; left: 860px;"></div>
-
-            <div class="white key" id="KEY_96" style="width: 20px; height: 100px; left: 880px;"></div>
-            <div class="black key" id="KEY_97" style="width: 15px; height: 60px; left: 892px;"></div>
-            <div class="white key" id="KEY_98" style="width: 20px; height: 100px; left: 900px;"></div>
-            <div class="black key" id="KEY_99" style="width: 15px; height: 60px; left: 912px;"></div>
-            <div class="white key" id="KEY_100" style="width: 20px; height: 100px; left: 920px;"></div>
-            <div class="white key" id="KEY_101" style="width: 20px; height: 100px; left: 940px;"></div>
-            <div class="black key" id="KEY_102" style="width: 15px; height: 60px; left: 952px;"></div>
-            <div class="white key" id="KEY_103" style="width: 20px; height: 100px; left: 960px;"></div>
-            <div class="black key" id="KEY_104" style="width: 15px; height: 60px; left: 972px;"></div>
-            <div class="white key" id="KEY_105" style="width: 20px; height: 100px; left: 980px;"></div>
-            <div class="black key" id="KEY_106" style="width: 15px; height: 60px; left: 992px;"></div>
-            <div class="white key" id="KEY_107" style="width: 20px; height: 100px; left: 1000px;"></div>
-
-            <div class="white key" id="KEY_108" style="width: 20px; height: 100px; left: 1020px;"></div>
+        <div align="center">
+        <ul class="songlist" id="playlist"></ul>
         </div>
 
+        <button class="btn" id="btnPrevious" onclick="previousSong();"><i class="fa fa-backward"></i> Back</button>
+        <button class="btn" id="btnPlay" onclick='playOrPause();'>
+            <i id="btnPlayIcon" class="fa fa-play"></i><span id="btnPlayLabel"> Play</span></button>
+        <button class="btn" id="btnNext" onclick="nextSong();"><i class="fa fa-forward"></i> Next</button>
+        <button class="btn" id="btnAudio" onclick="toggleAudio();">
+            <i id="btnAudioIcon" class="fa fa-toggle-on"></i> Audio</button>
+        <br><br>
+        <button class="btn" id="btnPrevious" onclick="testAllKeys();">Key Test</button>
+        <button class="btn" id="btnPlay" onclick='testPowerDraw();'>Load Test</button>
+        <button class="btn" id="btnStop" onclick='stopTests();'><i class="fa fa-stop"></i> Stop</button>
+
+        <br>
+
+        <div id="keyboard" class="keyboard-holder" style="width: 1100px;">
+            <div class="white key" id="KEY_21" note="A0" style="width: 20px; height: 100px; left: 0px;"></div>
+            <div class="black key" id="KEY_22" note="A#0" style="width: 15px; height: 60px; left: 12px;"></div>
+            <div class="white key" id="KEY_23" note="B0" style="width: 20px; height: 100px; left: 20px;"></div>
+
+            <div class="white key" id="KEY_24" note="C1" style="width: 20px; height: 100px; left: 40px;"></div>
+            <div class="black key" id="KEY_25" note="C#1" style="width: 15px; height: 60px; left: 52px;"></div>
+            <div class="white key" id="KEY_26" note="D1" style="width: 20px; height: 100px; left: 60px;"></div>
+            <div class="black key" id="KEY_27" note="D#1" style="width: 15px; height: 60px; left: 72px;"></div>
+            <div class="white key" id="KEY_28" note="E1" style="width: 20px; height: 100px; left: 80px;"></div>
+            <div class="white key" id="KEY_29" note="F1" style="width: 20px; height: 100px; left: 100px;"></div>
+            <div class="black key" id="KEY_30" note="F#1" style="width: 15px; height: 60px; left: 112px;"></div>
+            <div class="white key" id="KEY_31" note="G1" style="width: 20px; height: 100px; left: 120px;"></div>
+            <div class="black key" id="KEY_32" note="G#1" style="width: 15px; height: 60px; left: 132px;"></div>
+            <div class="white key" id="KEY_33" note="A1" style="width: 20px; height: 100px; left: 140px;"></div>
+            <div class="black key" id="KEY_34" note="A#1" style="width: 15px; height: 60px; left: 152px;"></div>
+            <div class="white key" id="KEY_35" note="B1" style="width: 20px; height: 100px; left: 160px;"></div>
+
+            <div class="white key" id="KEY_36" note="C2" style="width: 20px; height: 100px; left: 180px;"></div>
+            <div class="black key" id="KEY_37" note="C#2" style="width: 15px; height: 60px; left: 192px;"></div>
+            <div class="white key" id="KEY_38" note="D2" style="width: 20px; height: 100px; left: 200px;"></div>
+            <div class="black key" id="KEY_39" note="D#2" style="width: 15px; height: 60px; left: 212px;"></div>
+            <div class="white key" id="KEY_40" note="E2" style="width: 20px; height: 100px; left: 220px;"></div>
+            <div class="white key" id="KEY_41" note="F2" style="width: 20px; height: 100px; left: 240px;"></div>
+            <div class="black key" id="KEY_42" note="F#2" style="width: 15px; height: 60px; left: 252px;"></div>
+            <div class="white key" id="KEY_43" note="G2" style="width: 20px; height: 100px; left: 260px;"></div>
+            <div class="black key" id="KEY_44" note="G#2" style="width: 15px; height: 60px; left: 272px;"></div>
+            <div class="white key" id="KEY_45" note="A2" style="width: 20px; height: 100px; left: 280px;"></div>
+            <div class="black key" id="KEY_46" note="A#2" style="width: 15px; height: 60px; left: 292px;"></div>
+            <div class="white key" id="KEY_47" note="B2" style="width: 20px; height: 100px; left: 300px;"></div>
+
+            <div class="white key" id="KEY_48" note="C3" style="width: 20px; height: 100px; left: 320px;"></div>
+            <div class="black key" id="KEY_49" note="C#3" style="width: 15px; height: 60px; left: 332px;"></div>
+            <div class="white key" id="KEY_50" note="D3" style="width: 20px; height: 100px; left: 340px;"></div>
+            <div class="black key" id="KEY_51" note="D#3" style="width: 15px; height: 60px; left: 352px;"></div>
+            <div class="white key" id="KEY_52" note="E3" style="width: 20px; height: 100px; left: 360px;"></div>
+            <div class="white key" id="KEY_53" note="F3" style="width: 20px; height: 100px; left: 380px;"></div>
+            <div class="black key" id="KEY_54" note="F#3" style="width: 15px; height: 60px; left: 392px;"></div>
+            <div class="white key" id="KEY_55" note="G3" style="width: 20px; height: 100px; left: 400px;"></div>
+            <div class="black key" id="KEY_56" note="G#3" style="width: 15px; height: 60px; left: 412px;"></div>
+            <div class="white key" id="KEY_57" note="A3" style="width: 20px; height: 100px; left: 420px;"></div>
+            <div class="black key" id="KEY_58" note="A#3" style="width: 15px; height: 60px; left: 432px;"></div>
+            <div class="white key" id="KEY_59" note="B3" style="width: 20px; height: 100px; left: 440px;"></div>
+
+            <div class="white key" id="KEY_60" note="C4" style="width: 20px; height: 100px; left: 460px;"></div>
+            <div class="black key" id="KEY_61" note="C#4" style="width: 15px; height: 60px; left: 472px;"></div>
+            <div class="white key" id="KEY_62" note="D4" style="width: 20px; height: 100px; left: 480px;"></div>
+            <div class="black key" id="KEY_63" note="D#4" style="width: 15px; height: 60px; left: 492px;"></div>
+            <div class="white key" id="KEY_64" note="E4" style="width: 20px; height: 100px; left: 500px;"></div>
+            <div class="white key" id="KEY_65" note="F4" style="width: 20px; height: 100px; left: 520px;"></div>
+            <div class="black key" id="KEY_66" note="F#4" style="width: 15px; height: 60px; left: 532px;"></div>
+            <div class="white key" id="KEY_67" note="G4" style="width: 20px; height: 100px; left: 540px;"></div>
+            <div class="black key" id="KEY_68" note="G#4" style="width: 15px; height: 60px; left: 552px;"></div>
+            <div class="white key" id="KEY_69" note="A4" style="width: 20px; height: 100px; left: 560px;"></div>
+            <div class="black key" id="KEY_70" note="A#4" style="width: 15px; height: 60px; left: 572px;"></div>
+            <div class="white key" id="KEY_71" note="B4" style="width: 20px; height: 100px; left: 580px;"></div>
+
+            <div class="white key" id="KEY_72" note="C5" style="width: 20px; height: 100px; left: 600px;"></div>
+            <div class="black key" id="KEY_73" note="C#5" style="width: 15px; height: 60px; left: 612px;"></div>
+            <div class="white key" id="KEY_74" note="D5" style="width: 20px; height: 100px; left: 620px;"></div>
+            <div class="black key" id="KEY_75" note="D#5" style="width: 15px; height: 60px; left: 632px;"></div>
+            <div class="white key" id="KEY_76" note="E5" style="width: 20px; height: 100px; left: 640px;"></div>
+            <div class="white key" id="KEY_77" note="F5" style="width: 20px; height: 100px; left: 660px;"></div>
+            <div class="black key" id="KEY_78" note="F#5" style="width: 15px; height: 60px; left: 672px;"></div>
+            <div class="white key" id="KEY_79" note="G5" style="width: 20px; height: 100px; left: 680px;"></div>
+            <div class="black key" id="KEY_80" note="G#5" style="width: 15px; height: 60px; left: 692px;"></div>
+            <div class="white key" id="KEY_81" note="A5" style="width: 20px; height: 100px; left: 700px;"></div>
+            <div class="black key" id="KEY_82" note="A#5" style="width: 15px; height: 60px; left: 712px;"></div>
+            <div class="white key" id="KEY_83" note="B5" style="width: 20px; height: 100px; left: 720px;"></div>
+
+            <div class="white key" id="KEY_84" note="C6" style="width: 20px; height: 100px; left: 740px;"></div>
+            <div class="black key" id="KEY_85" note="C#6" style="width: 15px; height: 60px; left: 752px;"></div>
+            <div class="white key" id="KEY_86" note="D6" style="width: 20px; height: 100px; left: 760px;"></div>
+            <div class="black key" id="KEY_87" note="D#6" style="width: 15px; height: 60px; left: 772px;"></div>
+            <div class="white key" id="KEY_88" note="E6" style="width: 20px; height: 100px; left: 780px;"></div>
+            <div class="white key" id="KEY_89" note="F6" style="width: 20px; height: 100px; left: 800px;"></div>
+            <div class="black key" id="KEY_90" note="F#6" style="width: 15px; height: 60px; left: 812px;"></div>
+            <div class="white key" id="KEY_91" note="G6" style="width: 20px; height: 100px; left: 820px;"></div>
+            <div class="black key" id="KEY_92" note="G#6" style="width: 15px; height: 60px; left: 832px;"></div>
+            <div class="white key" id="KEY_93" note="A6" style="width: 20px; height: 100px; left: 840px;"></div>
+            <div class="black key" id="KEY_94" note="A#6" style="width: 15px; height: 60px; left: 852px;"></div>
+            <div class="white key" id="KEY_95" note="B6" style="width: 20px; height: 100px; left: 860px;"></div>
+
+            <div class="white key" id="KEY_96" note="C7" style="width: 20px; height: 100px; left: 880px;"></div>
+            <div class="black key" id="KEY_97" note="C#7" style="width: 15px; height: 60px; left: 892px;"></div>
+            <div class="white key" id="KEY_98" note="D7" style="width: 20px; height: 100px; left: 900px;"></div>
+            <div class="black key" id="KEY_99" note="D#7" style="width: 15px; height: 60px; left: 912px;"></div>
+            <div class="white key" id="KEY_100" note="E7" style="width: 20px; height: 100px; left: 920px;"></div>
+            <div class="white key" id="KEY_101" note="F7" style="width: 20px; height: 100px; left: 940px;"></div>
+            <div class="black key" id="KEY_102" note="F#7" style="width: 15px; height: 60px; left: 952px;"></div>
+            <div class="white key" id="KEY_103" note="G7" style="width: 20px; height: 100px; left: 960px;"></div>
+            <div class="black key" id="KEY_104" note="G#7" style="width: 15px; height: 60px; left: 972px;"></div>
+            <div class="white key" id="KEY_105" note="A7" style="width: 20px; height: 100px; left: 980px;"></div>
+            <div class="black key" id="KEY_106" note="A#7" style="width: 15px; height: 60px; left: 992px;"></div>
+            <div class="white key" id="KEY_107" note="B7" style="width: 20px; height: 100px; left: 1000px;"></div>
+
+            <div class="white key" id="KEY_108" note="C8" style="width: 20px; height: 100px; left: 1020px;"></div>
+        </div>
+        <!--
+        <label class="btn" for="tempo"><i class="fa fa-2x"></i> Tempo</label>
+        <input class="slider" type="range" id="tempo" min="50" max="150" value="100" oninput='updateTempo();'>
+        <p>Value: <span id="tempo_value">100%</span></p>
+        -->
+
+
+        <!--
         <form action="">
             <button onclick='testAllKeys();'>Test All Keys</button>
             <button onclick='testPowerDraw();'>Test Power Draw</button>
-            <button onclick='playSong();'>Play Test Song</button>
+            <button onclick='playSong(1);'>Play Test Song</button>
             <button onclick='stopTests();'>Stop All</button>
+            <button onclick='playOrPause();'>Play</button>
+            <button onclick="toggleAudio();">Audio</button>
        </form>
+       -->
+
+        <script src="soundfont-player.js"></script>
+        <script>
+
+        </script>
 
         <script src="/socket.io/socket.io.js"></script>
         <script src="https://code.jquery.com/jquery-1.11.1.js"></script>

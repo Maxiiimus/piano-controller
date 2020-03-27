@@ -7,13 +7,13 @@ const MidiPlayer = require('midi-player-js');
 const path = require('path');
 const fs = require('fs');
 const keyRegister = require('./key-register');
-//const midiTools = require('./piano-midi-player');
+//const songLibrary = require('./song-library');
+const songList = require('./midis/song-list');
 
 /**
  * App Variables
  */
 
-//const app = express();
 const port = process.env.PORT || "8000";
 const numModules = 11;
 const registerSize = 8;
@@ -22,11 +22,46 @@ const RCK_Pin = 13;   // Register Clock (RCLK, 7 on chip) - Latch pin
 const SRCK_Pin = 15;   // Shift-Register Clock (SRCLK, 8 on chip) - Clock pin
 const SRCLR_PIN = 16; // Shift_Register clear (SRCLR - 3 on chip) - Set to high to enable storage transfer
 
-app.use(express.static(path.join(__dirname, 'public')));
-
-//let led_state = 0b00000000;
 let register = new keyRegister(SER_Pin, SRCK_Pin, RCK_Pin, SRCLR_PIN);
 let keys = Buffer.alloc(numModules * registerSize).fill(0);
+let tempoAdjustment = 1.0; // Factor to increase/decrease the song tempo
+let currentTempo = 100; // Keeps track of the real, current tempo of song being played
+let keyIndex = 0;
+let myInterval; // = setInterval(testAllKeys, 500);
+//let library = new songLibrary();
+//let songs = library.getSongs();
+let songs = songList.songs; // = require('./midis/song-list');
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Initialize player and register event handler
+let Player = new MidiPlayer.Player(function (event) {
+    let keyIndex = 21;
+    let keyVal = 0;
+    if (event.name === "Note on" || event.name === "Note off") {
+        if (event.velocity !== 0) {
+            keyVal = 1;
+        }
+
+        keyIndex = event.noteNumber - 21;
+        keys[keyIndex] = keyVal;
+        register.send(keys);
+        io.emit('update keys', JSON.stringify(keys));
+        //console.log("Key " + event.noteNumber + ": " + (keyVal ? "ON" : "OFF"));
+    }
+
+    // Got a tempo event save the current tempo
+    if (event.name === "Set Tempo") {
+        currentTempo = event.data;
+
+        // If the tempo has been adjusted, reset it by the factor
+        if (tempoAdjustment !== 1.0) {
+            let t = Math.floor(currentTempo * tempoAdjustment);
+            console.log("Tempo set to: " + currentTempo + ", resetting to: " + t);
+            Player.setTempo(t);
+        }
+    }
+});
 
 function getKeyIndex(ledId) {
     return parseInt(ledId.substring(3));
@@ -39,8 +74,7 @@ function toggleKeyValue(index) {
     console.log("LEDS: " + JSON.stringify(keys));
 }
 
-let keyIndex = 0;
-let myInterval; // = setInterval(testAllKeys, 500);
+
 
 function runTest() {
     keyIndex = 0;
@@ -98,35 +132,50 @@ function stopTests() {
     io.emit('update keys', JSON.stringify(keys));
 }
 
-function playSong() {
+function playSong(song_id) {
     if (myInterval) {
         clearInterval(myInterval);
     }
     keys.fill(0);
     register.send(keys);
 
+    let song = songList.songs.find(el => el.id === song_id);
+    // => {name: "Albania", code: "AL"}
+    console.log("Playing Song: " + song["title"]);
+
+    let songPath = song["path"];
+
     // Load a MIDI file
-    Player.loadFile('./midis/Lil_Nas_X/Old_Town_Road.mid');
+    if (Player.isPlaying()) {
+        Player.stop();
+    }
+    Player.loadFile(songPath);
     console.log("Song length: " + Player.getSongTime());
-    /*Player.tracks.forEach(function(track){
+    Player.tracks.forEach(function(track){
         track.events.forEach(function(event){
             //console.log("Instrument: " + JSON.stringify(event));
-            if(event.name != "Note on") {
+            if(event.name !== "Note on") {
                 //let trackNameEvent = event.values[0].values[0];
                 //store track instrument in config
-                console.log("Event: " + JSON.stringify(event));
+                //console.log("Event: " + JSON.stringify(event));
                 //console.log("Instrument: " + trackNameEvent.string.trim());
+            }
+            if(event.name === "Set Tempo") {
+                console.log("Tempo: " + event.data);
             }
         });
         //console.log("Track: " + track.name);
     });
-   */
+
     Player.play();
 }
 
 io.on('connection', function (socket) {
     console.log('a user connected');
     //io.emit('update switches', JSON.stringify(keys));
+    //console.log("Sending: " + songs);
+    //io.emit('song list', songs);
+    io.emit('song list', JSON.stringify(songList));
 
     socket.on("test all keys", function() {
         runTest();
@@ -140,8 +189,15 @@ io.on('connection', function (socket) {
         stopTests();
     });
 
-    socket.on("play song", function() {
-        playSong();
+    socket.on("play song", function(id) {
+        playSong(id);
+    });
+
+    socket.on('update tempo', function (t) {
+        tempoAdjustment = t;
+        let newTempo = Math.floor(currentTempo * tempoAdjustment)
+        console.log("Adjusting tempo from: " + currentTempo + " to: " + newTempo);
+        Player.setTempo(newTempo);
     });
 
     socket.on('update key', function (id, keyState) {
@@ -172,21 +228,6 @@ http.listen(port, function () {
     console.log(`listening to requests on http://localhost:${port}`);
 });
 
-// Initialize player and register event handler
-let Player = new MidiPlayer.Player(function (event) {
-    let keyIndex = 21;
-    let keyVal = 0;
-    if (event.name === "Note on" || event.name === "Note off") {
-        if (event.velocity !== 0) {
-            keyVal = 1;
-        }
 
-        keyIndex = event.noteNumber - 21;
-        keys[keyIndex] = keyVal;
-        register.send(keys);
-        io.emit('update keys', JSON.stringify(keys));
-        console.log("Key " + event.noteNumber + ": " + (keyVal ? "ON" : "OFF"));
-    }
-});
 
 

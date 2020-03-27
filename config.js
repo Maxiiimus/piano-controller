@@ -1,5 +1,9 @@
 const config = {
     midiPath: 'midis/',
+    LastFMApplicationName: "piano-controller",
+    LastFMAPIKey: "83a4305883dc14bd520a6e9ebccc2eee",
+    LastFMAPISharedSecret: "3d1c06956f8f219f95d559670a0ebf17",
+    LastFMRegisteredTo:	"ShellyMatt",
     songs: [
         {
             title: "Satisfaction",
@@ -19,7 +23,7 @@ const config = {
         {
             title: "In Hell I'll be in Good Company",
             artist: "The Dead South",
-            midiFile: "midis/Dead_South/In_Hell_Ill_Be_In_Good_Company.mid"
+            midiFile: "midis/Dead South/In Hell Ill Be In Good Company.mid"
         }
     ]
 };
