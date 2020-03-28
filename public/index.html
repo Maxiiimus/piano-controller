@@ -4,6 +4,7 @@
         <title>Socket.IO chat</title>
         <link rel="stylesheet" type="text/css" href="style.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
         <style>
             .btn {
                 background-color: DodgerBlue;
@@ -20,7 +21,14 @@
             .btn:hover {
                 background-color: RoyalBlue;
             }
+
+            #sortable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+            #sortable li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 1.5em; font-size: 1.4em; height: 18px; }
+            #sortable li span { position: absolute; margin-left: -1.3em; }
         </style>
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
     </head>
     <body>
         <br>
@@ -29,8 +37,19 @@
         </div>
         <br>
 
-        <div align="center">
-        <ul class="songlist" id="playlist"></ul>
+        <input type="text" id="myInput" onkeyup="filterSonglist()" placeholder="Search">
+
+        <div class="facet-container">
+            <div class="left">
+                <label>All Songs</label>
+                <ul id="songlist" class="facet-list">
+                </ul>
+            </div>
+            <div class="right">
+                <label>Playlist</label>
+                <ul id="playlist" class="facet-list">
+                </ul>
+            </div>
         </div>
 
         <button class="btn" id="btnPrevious" onclick="previousSong();"><i class="fa fa-backward"></i> Back</button>
@@ -163,12 +182,7 @@
        -->
 
         <script src="soundfont-player.js"></script>
-        <script>
-
-        </script>
-
         <script src="/socket.io/socket.io.js"></script>
-        <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
         <script src="main.js"></script>
     </body>
 </html>

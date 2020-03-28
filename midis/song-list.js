@@ -59,6 +59,36 @@ const songList = {
             title: "Super Mario Brothers Main Theme",
             artist: "Koji Kondo",
             path: "midis/Super Mario Brothers/Main Theme.mid"
+        },
+        {
+            id: 11,
+            title: "Fur Elise",
+            artist: "Ludwig van Beethoven",
+            path: "midis/Beethoven/Fur Elise.mid"
+        },
+        {
+            id: 12,
+            title: "Piano Man",
+            artist: "Billy Joel",
+            path: "midis/Billy Joel/Piano Man.mid"
+        },
+        {
+            id: 13,
+            title: "Game of Thrones Main Theme",
+            artist: "‎Ramin Djawadi",
+            path: "midis/Game of Thrones/Game of Thrones.mid"
+        },
+        {
+            id: 14,
+            title: "The Entertainer",
+            artist: "‎Scott Joplin",
+            path: "midis/Scott Joplin/The Entertainer.mid"
+        },
+        {
+            id: 15,
+            title: "The Simpsons Main Theme",
+            artist: "‎Danny Elfman",
+            path: "midis/Simpsons/Main Theme.mid"
         }
     ]
 };

@@ -24,13 +24,12 @@ const SRCLR_PIN = 16; // Shift_Register clear (SRCLR - 3 on chip) - Set to high 
 
 let register = new keyRegister(SER_Pin, SRCK_Pin, RCK_Pin, SRCLR_PIN);
 let keys = Buffer.alloc(numModules * registerSize).fill(0);
-let tempoAdjustment = 1.0; // Factor to increase/decrease the song tempo
-let currentTempo = 100; // Keeps track of the real, current tempo of song being played
 let keyIndex = 0;
 let myInterval; // = setInterval(testAllKeys, 500);
 //let library = new songLibrary();
 //let songs = library.getSongs();
-let songs = songList.songs; // = require('./midis/song-list');
+//let songs = songList.songs; // = require('./midis/song-list');
+let playlist;
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -49,18 +48,6 @@ let Player = new MidiPlayer.Player(function (event) {
         io.emit('update keys', JSON.stringify(keys));
         //console.log("Key " + event.noteNumber + ": " + (keyVal ? "ON" : "OFF"));
     }
-
-    // Got a tempo event save the current tempo
-    if (event.name === "Set Tempo") {
-        currentTempo = event.data;
-
-        // If the tempo has been adjusted, reset it by the factor
-        if (tempoAdjustment !== 1.0) {
-            let t = Math.floor(currentTempo * tempoAdjustment);
-            console.log("Tempo set to: " + currentTempo + ", resetting to: " + t);
-            Player.setTempo(t);
-        }
-    }
 });
 
 function getKeyIndex(ledId) {
@@ -73,8 +60,6 @@ function toggleKeyValue(index) {
 
     console.log("LEDS: " + JSON.stringify(keys));
 }
-
-
 
 function runTest() {
     keyIndex = 0;
@@ -138,9 +123,8 @@ function playSong(song_id) {
     }
     keys.fill(0);
     register.send(keys);
-
-    let song = songList.songs.find(el => el.id === song_id);
-    // => {name: "Albania", code: "AL"}
+    console.log("Received song: " + song_id);
+    let song = songList.songs.find(el => el.id === Number.parseInt(song_id));
     console.log("Playing Song: " + song["title"]);
 
     let songPath = song["path"];
@@ -160,9 +144,6 @@ function playSong(song_id) {
                 //console.log("Event: " + JSON.stringify(event));
                 //console.log("Instrument: " + trackNameEvent.string.trim());
             }
-            if(event.name === "Set Tempo") {
-                console.log("Tempo: " + event.data);
-            }
         });
         //console.log("Track: " + track.name);
     });
@@ -176,6 +157,7 @@ io.on('connection', function (socket) {
     //console.log("Sending: " + songs);
     //io.emit('song list', songs);
     io.emit('song list', JSON.stringify(songList));
+    io.emit('update playlist', JSON.stringify(playlist));
 
     socket.on("test all keys", function() {
         runTest();
@@ -193,13 +175,6 @@ io.on('connection', function (socket) {
         playSong(id);
     });
 
-    socket.on('update tempo', function (t) {
-        tempoAdjustment = t;
-        let newTempo = Math.floor(currentTempo * tempoAdjustment)
-        console.log("Adjusting tempo from: " + currentTempo + " to: " + newTempo);
-        Player.setTempo(newTempo);
-    });
-
     socket.on('update key', function (id, keyState) {
         if (id >= 0 && id <= keys.length) {
             keys[id] = keyState;
@@ -209,9 +184,10 @@ io.on('connection', function (socket) {
         }
     });
 
-    socket.on('toggle switch', function (switch_id) {
-        console.log('Switch Off: ' + switch_id);
-        toggleKeyValue(getKeyIndex(switch_id));
+    socket.on('update playlist', function (p) {
+        console.log('incoming playlist: ' + JSON.stringify(p));
+        playlist = p;
+        io.emit('update playlist', JSON.stringify(p));
         //io.emit('update switches', JSON.stringify(keys));
     });
 
