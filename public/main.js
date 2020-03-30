@@ -1,6 +1,7 @@
 let socket = io();
 let ac = new AudioContext();
-let audioOn = true;
+let audioOn = false;
+let songtime = 100;
 
 // This is used to hear audio playing on the client. Useful for testing, but doesn't sound great
 let piano = null;
@@ -8,99 +9,12 @@ Soundfont.instrument(ac, 'acoustic_grand_piano').then(function (p) {
     piano = p;
 });
 
-document.getElementById("btnAudio").isOn = true;
-document.getElementById("btnPlay").isPlaying = false;
-
-// Set up handlers for the keyboard
-for (let i = 21; i < 21 + 88; i++) {
-    let key = document.getElementById("KEY_" + i);
-    key.note = i;
-    key.state = false;
-
-    key.onmousedown = function () {
-        setKeyState(key, true)
-    };
-    key.ontouchstart = function () {
-        setKeyState(key, true)
-    };
-    key.onmouseup = function () {
-        setKeyState(key, false)
-    };
-    key.onmouseout = function () {
-        setKeyState(key, false)
-    };
-    key.ontouchend = function () {
-        setKeyState(key, false)
-    };
-}
-
-$(function () {
-
-    /*
-    $("#sortable1").sortable({
-        connectWith: ".connectedSortable",
-        forcePlaceholderSize: false,
-        helper: function (e, li) {
-            copyHelper = li.clone().insertAfter(li);
-            return li.clone();
-        },
-        stop: function () {
-            copyHelper && copyHelper.remove();
-        }
-    });
-    $(".connectedSortable").sortable({
-        receive: function (e, ui) {
-            copyHelper = null;
-        }
-    });
-
-     */
-
-    $("#songlist").sortable({
-        connectWith: "#playlist",
-        forcePlaceholderSize: false,
-        //placeholder: "placeholder",
-        delay: 150,
-        helper: function (e, li) {
-            copyHelper = li.clone().insertAfter(li);
-            return li.clone();
-        },
-        stop: function () {
-            copyHelper && copyHelper.remove();
-        }
-    }).disableSelection();
-
-    $("#playlist").sortable({
-        placeholder: "placeholder",
-        delay: 150,
-        update: updatePlaylist,
-        receive: function (e, ui) {
-            copyHelper = null;
-        }
-    }).disableSelection()
+$("#songlist").filterable({
+    filterPlaceholder: "Find songs..."
 });
 
-function updatePlaylist(event, ui) {
-    let playlisttEl = event.target;
-    console.log("UpdateLists called for: ", playlisttEl.id);
-
-    let playlist = playlisttEl.querySelectorAll("li");
-    let newPlaylist = new Array();
-
-    console.log ("Songlist:");
-    for (let i = 0; i < playlist.length; i++) {
-       console.log(i + ") " + playlist[i].innerText);
-
-       newPlaylist.push(
-           {
-               title: playlist[i].innerText,
-               id: playlist[i].getAttribute("data-id")
-           });
-    }
-
-    //console.log("Updating playlist: " + JSON.stringify(newPlaylist));
-    socket.emit('update playlist', newPlaylist);
-}
+let songlist, playlist, currentSong;
+let isPlaying = false;
 
 function filterSonglist() {
     // Declare variables
@@ -122,35 +36,6 @@ function filterSonglist() {
     }
 }
 
-// Following code enables drag and drop on mobile devices
-// ======================================================
-function touchHandler(event) {
-    var touch = event.changedTouches[0];
-
-    var simulatedEvent = document.createEvent("MouseEvent");
-    simulatedEvent.initMouseEvent({
-            touchstart: "mousedown",
-            touchmove: "mousemove",
-            touchend: "mouseup"
-        }[event.type], true, true, window, 1,
-        touch.screenX, touch.screenY,
-        touch.clientX, touch.clientY, false,
-        false, false, false, 0, null);
-
-    touch.target.dispatchEvent(simulatedEvent);
-    event.preventDefault();
-}
-
-function init() {
-    document.addEventListener("touchstart", touchHandler, true);
-    document.addEventListener("touchmove", touchHandler, true);
-    document.addEventListener("touchend", touchHandler, true);
-    document.addEventListener("touchcancel", touchHandler, true);
-}
-
-init();
-// ======================================================
-
 /*
  * Various client UI functions
  */
@@ -170,49 +55,113 @@ function setKeyState(key, keyState) {
     }
 }
 
+function testEachKey() {
+    $("#playbutton").removeClass("ui-icon-play").addClass("ui-icon-pause");
+    socket.emit('test each key');
+}
+
 function testAllKeys() {
+    $("#playbutton").removeClass("ui-icon-play").addClass("ui-icon-pause");
     socket.emit('test all keys');
 }
 
-function testPowerDraw() {
-    socket.emit('test power draw');
-}
-
-function stopTests() {
-    socket.emit('stop tests');
-}
-
 function playSong(id) {
-    console.log("Playing song: " + id);
-    socket.emit('play song', id);
+    /*
+    currentSong = id;
+    let song = songlist.find(el => el.id === Number.parseInt(id));
+    console.log("Playing song: " + song.title);
+    if (song.image) {
+        $("#artistImage").attr("src", song.image);
+    } else {
+        $("#artistImage").attr("src", "images/piano.png");
+    }
+    $("#songTitle").text(song.title);
+    $("#artistName").text(song.artist);
+    $("#playbutton").removeClass("ui-icon-play").addClass("ui-icon-pause");
+     */
+
+
+    console.log("Calling set song: " + id);
+    socket.emit('set song', id);
+    socket.emit('play');
 }
 
-function toggleAudio() {
-    let button = document.getElementById("btnAudio");
-    let btnIcon = document.getElementById("btnAudioIcon");
-
-    if (button.isOn) {
-        btnIcon.className = "fa fa-toggle-off";
-    } else {
-        btnIcon.className = "fa fa-toggle-on";
-    }
-    button.isOn = !button.isOn;
-    audioOn = button.isOn;
+function setSongTime() {
+    let val =  $("#timeslider").val();
+    //console.log ("slider = " + val);
+    socket.emit("set time", val);
 }
 
-function playOrPause() {
-    let button = document.getElementById("btnPlay");
-    let btnIcon = document.getElementById("btnPlayIcon");
-    let btnLabel = document.getElementById("btnPlayLabel");
+function addToQueue(id) {
+    let list = $("#playlist");
+    let song = songlist.find(el => el.id === Number.parseInt(id));
 
-    if (!button.isPlaying) {
-        btnIcon.className = "fa fa-pause";
-        btnLabel.innerText = " Pause";
-    } else {
-        btnIcon.className = "fa fa-play";
-        btnLabel.innerText = " Play";
+    console.log("adding song: " + song.title + " - " + song.id);
+    // Update the songs list
+    list.append(
+            '<li><a href="#" data-song-id="' +
+            song.id + '" onclick="playSong(' + song.id +
+            ');">' + song.title + '</a>' +
+            '<a href="#" onclick="removeFromQueue($(this));" class="ui-btn ui-icon-delete">Remove</a></li>'
+        );
+
+    list.listview( "refresh" );
+
+    updatePlaylist();
+}
+
+function removeFromQueue(el) {
+    el.parent().remove();
+    updatePlaylist();
+}
+
+function updatePlaylist() {
+    let playlistEl = $("#playlist");
+    //console.log("UpdateLists called for: ", playlistEl.attr('id'));
+
+    let list = playlistEl.children("li");
+    //console.log("Found li children: " + list.length);
+    if (!list) return;
+    let newPlaylist = [];
+
+    //console.log ("Playlist:");
+    for (let i = 0; i < list.length; i++) {
+        //console.log(i + ") " + $(list[i]).text() + " - " + $(list[i]).children(":first").attr("data-song-id"));
+        //console.log("outerhtml: " + $(list[i])[0].outerHTML);
+
+        newPlaylist.push(
+            {
+                title: $(list[i]).text(),
+                id: $(list[i]).children(":first").attr("data-song-id")
+            });
     }
-    button.isPlaying = !button.isPlaying;
+
+    //console.log("Updating playlist: " + JSON.stringify(newPlaylist));
+    socket.emit('update playlist', JSON.stringify(newPlaylist));
+}
+
+function setAudio(el) {
+    audioOn = el.is(":checked");
+}
+
+function playOrPause(el) {
+    isPlaying = !isPlaying;
+
+    if (isPlaying) {
+        el.removeClass("ui-icon-play").addClass("ui-icon-pause");
+        socket.emit('play');
+    } else {
+        el.removeClass("ui-icon-pause").addClass("ui-icon-play");
+        socket.emit('pause');
+    }
+}
+
+function previousSong() {
+
+}
+
+function nextSong() {
+
 }
 
 /*
@@ -223,58 +172,123 @@ function playOrPause() {
 //
 // incoming_keys: A buffer array representing the on/off state for each key
 socket.on('update keys', function (incoming_keys) {
-    // The keys (on/off) are in a Buffer array of bits sent by the server
+    // If we're receiving key updates, we are playing
+    if (!isPlaying) {
+        isPlaying = true;
+        $("#playbutton").removeClass("ui-icon-play").addClass("ui-icon-pause");
+    }
+
+    if (!audioOn || !piano) return;
     let keys = JSON.parse(incoming_keys).data;
 
     for (let i = 0; i < 88; i++) {
-        let key = document.getElementById("KEY_" + (i + 21));
         if (keys[i]) {
-            key.style.backgroundColor = "#71DB90";
-            if (piano) {
-                piano.play(key.note);
-            }
-        } else if (key.classList.contains("white")) {
-            key.style.backgroundColor = "#F2F2DE";
-        } else {
-            key.style.backgroundColor = "rgb(32, 32, 32)";
+            piano.play(i + 21);
         }
     }
+});
+
+function getTimeString(time) {
+    let minutes = Math.floor(time / 60.0);
+    let seconds = Math.floor(time - minutes * 60);
+    return(minutes + ":" + (seconds < 10 ? "0" + seconds : seconds));
+}
+
+// Method: 'set song'
+//
+// id: Server sends what song id is currently playing
+socket.on('set song', function (id) {
+    if (id == currentSong) return;
+    currentSong = id;
+
+    let song = songlist.find(el => el.id === Number.parseInt(id));
+    if (!song) return;
+
+    console.log("Setting current song: " + song.title);
+    if (song.image) {
+        $("#artistImage").attr("src", song.image);
+    } else {
+        $("#artistImage").attr("src", "images/piano.png");
+    }
+    $("#songTitle").text(song.title);
+    $("#artistName").text(song.artist);
+});
+
+
+// Method: 'time remaining'
+//
+// song_time: The length the song in seconds
+// time_remaining: The seconds remaining in the song
+socket.on('update time', function (song_time, time_remaining) {
+    let time_played = song_time - time_remaining
+    let slider_position = 0;
+    if (song_time !== 0) {
+        slider_position = Math.floor((song_time - time_remaining) / song_time * 100.0);
+    }
+
+    //console.log("updating time: " + song_time + ", " + time_remaining);
+
+    $("#timeplayed").text(getTimeString(time_played));
+    $("#timeremaining").text("-" + getTimeString(time_remaining));
+    $("#timeslider").val(slider_position);
+    $("#timeslider").slider("refresh");
+});
+
+// Method: 'song over'
+//
+// Server sends an update when the current song has finished playing
+socket.on('song over', function () {
+    $("#timeplayed").text("");
+    $("#timeremaining").text("");
+    $("#timeslider").val(0);
+    $("#timeslider").slider("refresh");
+    $("#playbutton").removeClass("ui-icon-pause").addClass("ui-icon-play");
 });
 
 // Method: 'song list'
 //
 // song_list: A JSON object with all the available songs to play
-socket.on('song list', function (allSongs, playlistSongs) {
+socket.on('song list', function (all_songs) {
     // This list of songs is sent in as JSON
-    let songlist = JSON.parse(allSongs).songs;
-    //let playlist = JSON.parse(playlistSongs).songs;
-    //console.log("Songs: " + songs);
+    songlist = JSON.parse(all_songs).songs;
+    let list = $("#songlist");
 
-    //document.getElementById("songlist").innerHTML = "";
-    let songlistEl = document.getElementById("songlist");
-    //let playlistEl = document.getElementById("playlist");
-    songlistEl.innerHTML = "";
-    //playlistEl.innerHTML = "";
-
+    list.empty();
     // Update the songs list
     for (let i = 0; i < songlist.length; i++) {
-        let song_item = document.createElement("li");
-        let node = document.createTextNode(songlist[i].title);
-        song_item.appendChild(node);
-        song_item.setAttribute("data-id", songlist[i].id);
-        song_item.className = "facet";
-        song_item.onclick = function () {
-            playSong(songlist[i].id)
-        };
+        if (songlist[i].hidden) continue;
 
-        songlistEl.appendChild(song_item);
+        list.append(
+            '<li><a style="padding: .3em;" href="#" data-song-id="' +
+            songlist[i].id + '" onclick="playSong(' + songlist[i].id +
+            ');"><p style="font-weight: bold">' + songlist[i].title + '</p><p>' +
+            songlist[i].artist + '</p></a>' +
+            '<a href="#" onclick="addToQueue(' + songlist[i].id + ');" class="ui-btn ui-icon-plus">Add</a></li>'
+        );
     }
+    list.listview( "refresh" );
 });
 
 // Method: 'update playlist'
 //
-// song_list: A JSON object with the songs in the playlist
-socket.on('update playlist', function (playlistSongs) {
+// playlistSongs: A JSON object with the songs in the playlist
+socket.on('update playlist', function (playlist_songs) {
+    playlist = JSON.parse(playlist_songs);
+    console.log("updated playlist: " + JSON.stringify(playlist_songs));
+
+    $("#playlist").empty();
+    // Update the songs list
+    for (let i = 0; i < playlist.length; i++) {
+        $("#playlist").append(
+            '<li><a href="#" data-song-id="' +
+            playlist[i].id + '" onclick="playSong(' + playlist[i].id +
+            ');">' + playlist[i].title +
+            '</a><a href="#" onclick="removeFromQueue($(this));" class="ui-btn ui-icon-delete">Remove</a></li>'
+        );
+    }
+    $("#playlist").listview( "refresh" );
+
+    /*
     // This list of songs is sent in as JSON
     //let songlist = JSON.parse(allSongs).songs;
     if (playlistSongs == null) return;
@@ -298,5 +312,6 @@ socket.on('update playlist', function (playlistSongs) {
 
         playlistEl.appendChild(song_item);
     }
+     */
 });
 

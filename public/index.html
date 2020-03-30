@@ -1,5 +1,148 @@
 <!doctype html>
 <html>
+<head>
+    <title>My Page</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
+    <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <style id="full-width-slider">
+        /* Hide the number input */
+        .full-width-slider input {
+            display: none;
+        }
+
+        .full-width-slider .ui-slider-track {
+            margin-left: 15px;
+        }
+
+        .box {
+            position: fixed;
+            bottom: -100%;
+            left: 0%;
+            height: 100%;
+            background-color: #DBDBDB;
+            width: 100%;
+            display: block;
+            z-index: 999999;
+        }
+
+        .box-inner {
+            position: absolute;
+            width: 100%;
+            top: 0px;
+            bottom: 0px;
+            overflow: scroll;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .ui-icon-play:after {
+            background-image: url("images/play.png");
+            background-size: 18px 18px;
+        }
+
+        .ui-icon-pause:after {
+            background-image: url("images/pause.png");
+            background-size: 18px 18px;
+        }
+
+    </style>
+    <script>
+        $(function () {
+            $('#openqueue').click(function () {
+                $('#box').animate({'bottom': '0'}, 300);
+            });
+
+            $('#close').click(function () {
+                $('#box').animate({'bottom': '-100%'}, 300)
+            });
+        });
+    </script>
+</head>
+<body>
+<div data-role="page">
+
+    <!-- Song search panel -->
+    <div data-display="overlay" data-role="panel" id="searchpanel">
+        <ul data-filter="true" data-inset="true" data-role="listview" id="songlist" placeholder="Find songs...">
+        </ul>
+    </div><!-- /panel -->
+
+    <!-- Options panel -->
+    <div data-display="overlay" data-role="panel" data-position="right" id="optionspanel">
+        <h2>Options</h2>
+        <form>
+            <input type="checkbox" name="shuffle" id="shuffle" onclick="setShuffle($(this));">
+            <label for="shuffle">Shuffle</label>
+            <input type="checkbox" name="repeat" id="repeat" onclick="setRepeat($(this));">
+            <label for="repeat">Repeat</label>
+            <input type="checkbox" name="audio" id="audio" onclick="setAudio($(this));">
+            <label for="audio">Audio</label>
+            <p></p>
+            <a href="#" class="ui-btn" onclick="testEachKey();">Test Each Key</a>
+            <a href="#" class="ui-btn" onclick="testAllKeys();">Load Test Keys</a>
+        </form>
+    </div><!-- /panel -->
+
+    <!-- Queue panel (custom) -->
+    <div class="box" id="box">
+        <div class="box-inner">
+            <a id="close" href="#" class="ui-btn ui-icon-carat-d ui-btn-icon-right">Queue</a></li>
+            <ul id="playlist" data-role="listview"></ul>
+        </div>
+    </div>
+
+    <div data-display="push" data-role="panel" data-position="right" id="queuepanel">
+        <h1>Queue</h1>
+    </div><!-- /panel -->
+
+    <div data-role="header">
+        <a data-icon="search" href="#searchpanel" data-iconpos="notext">Songs</a>
+        <h1>Piano Controller</h1>
+        <a data-icon="gear" href="#optionspanel" data-iconpos="notext">Options</a>
+    </div><!-- /header -->
+
+    <div class="ui-content" role="main">
+        <div style="text-align: center">
+            <img height="200" id="artistImage" src="images/artists/Welcome%20Image.png">
+            <form class="full-width-slider">
+                <input id="timeslider" max="100" min="0" name="timeslider" type="range" value="0" data-highlight="true"
+                       onchange="setSongTime();">
+                <div align="left"><label id="sliderlabel" for="timeslider"></label></div>
+                <div id="timeplayed" align="left" style="float:left"></div>
+                <div id="timeremaining" align="right" style="float:right"></div>
+            </form>
+
+            <h2 id="songTitle"></h2>
+            <h3 id="artistName"></h3>
+            <a id="backbutton" href="#" onclick="previousSong();"
+               class="ui-btn ui-shadow ui-corner-all ui-btn-inline ui-icon-carat-l ui-btn-icon-notext">back</a>
+            <a id="playbutton" href="#" onclick="playOrPause($(this));"
+               class="ui-btn ui-shadow ui-corner-all ui-btn-inline ui-icon-play ui-btn-icon-notext">play</a>
+            <a id="nextbutton" href="#" onclick="nextSong();"
+               class="ui-btn ui-shadow ui-corner-all ui-btn-inline ui-icon-carat-r ui-btn-icon-notext">next</a>
+            <!--<a id="openqueue" href="#"
+               class="ui-btn ui-shadow ui-corner-all ui-btn-inline ui-icon-bars ui-btn-icon-notext">queue</a>-->
+        </div>
+    </div><!-- /content -->
+
+
+    <div data-position="fixed" data-role="footer">
+        <a id="openqueue" data-icon="carat-u" href="index.html">Queue</a>
+    </div> <!-- /footer -->
+
+
+</div><!-- /page -->
+<script src="soundfont-player.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
+
+<!--
+
+<!doctype html>
+<html>
     <head>
         <title>Socket.IO chat</title>
         <link rel="stylesheet" type="text/css" href="style.css">
@@ -163,26 +306,10 @@
 
             <div class="white key" id="KEY_108" note="C8" style="width: 20px; height: 100px; left: 1020px;"></div>
         </div>
-        <!--
-        <label class="btn" for="tempo"><i class="fa fa-2x"></i> Tempo</label>
-        <input class="slider" type="range" id="tempo" min="50" max="150" value="100" oninput='updateTempo();'>
-        <p>Value: <span id="tempo_value">100%</span></p>
-        -->
-
-
-        <!--
-        <form action="">
-            <button onclick='testAllKeys();'>Test All Keys</button>
-            <button onclick='testPowerDraw();'>Test Power Draw</button>
-            <button onclick='playSong(1);'>Play Test Song</button>
-            <button onclick='stopTests();'>Stop All</button>
-            <button onclick='playOrPause();'>Play</button>
-            <button onclick="toggleAudio();">Audio</button>
-       </form>
-       -->
 
         <script src="soundfont-player.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="main.js"></script>
     </body>
 </html>
+-->

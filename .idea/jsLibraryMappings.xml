@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="JavaScriptLibraryMappings">
-    <file url="PROJECT" libraries="{font-awesome, jquery-1.12.4, jquery-ui}" />
+    <file url="PROJECT" libraries="{a53e4d118d, font-awesome, jquery-1.12.1, jquery-1.12.4, jquery-ui, jquery.mobile-1.4.5}" />
     <includedPredefinedLibrary name="Node.js Core" />
   </component>
 </project>
